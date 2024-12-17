@@ -1,0 +1,2 @@
+/Users/ekaterinasidorina/projects/travelerapp/android/app/.cxx/Debug/39523p2z/x86_64/CMakeFiles/edit_cache.dir
+/Users/ekaterinasidorina/projects/travelerapp/android/app/.cxx/Debug/39523p2z/x86_64/CMakeFiles/rebuild_cache.dir
