@@ -18,10 +18,10 @@ class AttractionsFilter extends StatelessWidget {
       value: types.containsKey(selectedType) ? selectedType : null,
       hint: const Text('Выберите тип'),
       isExpanded: true,
-      items: types.keys.map((type) {
+      items: types.entries.map((entry) {
         return DropdownMenuItem<String>(
-          value: type,
-          child: Text(type),
+          value: entry.key,
+          child: Text(entry.key),
         );
       }).toList(),
       onChanged: onTypeSelected,

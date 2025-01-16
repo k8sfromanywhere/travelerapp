@@ -5,12 +5,22 @@ abstract class AttractionsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class FetchAttractions extends AttractionsEvent {
-  final String city;
-  final String type;
+class LoadAttractions extends AttractionsEvent {
+  final double lat;
+  final double lon;
+  final String filter;
 
-  FetchAttractions({required this.city, required this.type});
+  LoadAttractions({required this.lat, required this.lon, required this.filter});
 
   @override
-  List<Object?> get props => [city, type];
+  List<Object?> get props => [lat, lon, filter];
+}
+
+class SearchCity extends AttractionsEvent {
+  final String city;
+
+  SearchCity({required this.city});
+
+  @override
+  List<Object?> get props => [city];
 }
