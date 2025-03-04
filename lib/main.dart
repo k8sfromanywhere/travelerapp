@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:travelerapp/core/themes/app_theme.dart';
 import 'package:travelerapp/features/attractions/bloc/bloc/attractions_bloc.dart';
 import 'package:travelerapp/features/attractions/data/attractions_repository.dart';
-import 'package:travelerapp/features/attractions/presentation/screens/attractions.dart';
+import 'package:travelerapp/features/attractions/presentation/screens/attractions_page.dart';
 import 'package:travelerapp/features/authentication/bloc/bloc/auth_bloc.dart';
 import 'package:travelerapp/features/authentication/presentation/screens/login_screen.dart';
 import 'package:travelerapp/features/authentication/presentation/screens/register_screen.dart';
@@ -51,7 +51,7 @@ Future<void> _checkLocationPermission() async {
   // Проверяем, включена ли служба геолокации
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
-    print('Службы геолокации отключены. Используется Москва.');
+    debugPrint('Службы геолокации отключены. Используется Москва.');
     return;
   }
 
@@ -60,17 +60,17 @@ Future<void> _checkLocationPermission() async {
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      print('Доступ к геолокации отклонен. Используется Москва.');
+      debugPrint('Доступ к геолокации отклонен. Используется Москва.');
       return;
     }
   }
 
   if (permission == LocationPermission.deniedForever) {
-    print('Доступ к геолокации отклонен навсегда. Используется Москва.');
+    debugPrint('Доступ к геолокации отклонен навсегда. Используется Москва.');
     return;
   }
 
-  print('Геолокация разрешена');
+  debugPrint('Геолокация разрешена');
 }
 
 class TravelerApp extends StatelessWidget {

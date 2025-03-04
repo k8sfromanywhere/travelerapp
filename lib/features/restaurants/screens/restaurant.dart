@@ -17,39 +17,36 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
   List<Map<String, dynamic>> _restaurants = [];
   List<Marker> _markers = [];
   bool _isLoading = false;
-  LatLng _mapCenter = const LatLng(55.7558, 37.6173); // Москва по умолчанию
-  double _zoomLevel = 13.0;
+  final LatLng _mapCenter =
+      const LatLng(55.7558, 37.6173); // Москва по умолчанию
+  final double _zoomLevel = 13.0;
 
   @override
   void initState() {
     super.initState();
-    // Перенос работы с BuildContext в didChangeDependencies
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeLocation();
+      if (mounted) {
+        _initializeLocation();
+      }
     });
   }
 
   /// Инициализация геолокации
   Future<void> _initializeLocation() async {
     try {
-      // Геолокация и начальная настройка карты
-      _mapCenter = const LatLng(55.7558, 37.6173); // Москва по умолчанию
       if (mounted) {
         _mapController.move(_mapCenter, _zoomLevel);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка получения геолокации: $e')),
-        );
-      }
+      _showSnackBar('Ошибка получения геолокации: $e');
     }
   }
 
-  /// Поиск координат города с использованием Nominatim
+  /// Поиск координат города через Nominatim API
   Future<LatLng?> _getCityCoordinates(String city) async {
     final url =
         'https://nominatim.openstreetmap.org/search?q=$city&format=json&limit=1';
+
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -63,22 +60,22 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
         }
       }
     } catch (e) {
-      _showSnackBar('Ошибка получения координат города: $e');
+      _showSnackBar('Ошибка получения координат: $e');
     }
     return null;
   }
 
   /// Загрузка ресторанов через Overpass API
   Future<void> _fetchRestaurants(LatLng coordinates) async {
-    const radiusInMeters = 5000; // Радиус поиска - 5 км
+    const radiusInMeters = 5000; // 5 км радиус
     final url = 'https://overpass-api.de/api/interpreter?data=[out:json];'
         'node[amenity=restaurant](around:$radiusInMeters,${coordinates.latitude},${coordinates.longitude});'
         'out;';
 
     setState(() {
       _isLoading = true;
-      _restaurants = [];
-      _markers = [];
+      _restaurants.clear();
+      _markers.clear();
     });
 
     try {
@@ -86,6 +83,8 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
       if (response.statusCode == 200) {
         final data = json.decode(utf8.decode(response.bodyBytes));
         final elements = data['elements'] as List;
+
+        if (!mounted) return;
 
         setState(() {
           _restaurants = elements
@@ -101,10 +100,12 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
             };
           }).toList();
 
-          // Создаем маркеры
+          // Обновление маркеров
           _markers = _restaurants.map((restaurant) {
             return Marker(
               point: LatLng(restaurant['lat'], restaurant['lon']),
+              width: 30.0,
+              height: 30.0,
               child: GestureDetector(
                 onTap: () => _showRestaurantInfo(restaurant),
                 child: const Icon(
@@ -122,9 +123,11 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
     } catch (e) {
       _showSnackBar('Ошибка запроса: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -133,13 +136,15 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
     final coordinates = await _getCityCoordinates(city);
     if (coordinates != null) {
       await _fetchRestaurants(coordinates);
-      _mapController.move(coordinates, _zoomLevel);
+      if (mounted) {
+        _mapController.move(coordinates, _zoomLevel);
+      }
     } else {
       _showSnackBar('Не удалось найти координаты города.');
     }
   }
 
-  /// Показать информацию о ресторане
+  /// Показ информации о ресторане
   void _showRestaurantInfo(Map<String, dynamic> restaurant) {
     showDialog(
       context: context,
@@ -156,10 +161,12 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
     );
   }
 
-  /// Показать SnackBar с ошибкой
+  /// Показ ошибки через SnackBar
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
@@ -195,7 +202,7 @@ class _RestaurantsMapPageState extends State<RestaurantsMapPage> {
                         urlTemplate:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       ),
-                      MarkerLayer(markers: _markers),
+                      if (_markers.isNotEmpty) MarkerLayer(markers: _markers),
                     ],
                   ),
                 ),

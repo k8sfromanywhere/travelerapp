@@ -40,7 +40,6 @@ class RoutesPage extends StatelessWidget {
 
           return ListView.builder(
             shrinkWrap: true,
-            reverse: true,
             itemCount: routes.length,
             itemBuilder: (context, index) {
               final route = routes[index];
@@ -56,10 +55,7 @@ class RoutesPage extends StatelessWidget {
                   .toList();
 
               return ListTile(
-                title: Hero(
-                  tag: 'hero-route-$id',
-                  child: Text(name),
-                ),
+                title: Text(name),
                 subtitle: Text('Точек: ${waypoints.length}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -77,12 +73,12 @@ class RoutesPage extends StatelessWidget {
                             )
                           : FlutterMap(
                               options: MapOptions(
-                                initialCameraFit: CameraFit.bounds(
-                                  bounds: _calculateBounds(waypoints),
-                                  padding: const EdgeInsets.all(8.0),
-                                ),
+                                initialCenter: waypoints.isNotEmpty
+                                    ? waypoints.first
+                                    : const LatLng(55.0, 37.0),
+                                initialZoom: 13.0,
                                 interactionOptions: const InteractionOptions(
-                                  flags: InteractiveFlag.none,
+                                  flags: InteractiveFlag.all,
                                 ),
                               ),
                               children: [
@@ -90,30 +86,31 @@ class RoutesPage extends StatelessWidget {
                                   urlTemplate:
                                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                                 ),
-                                PolylineLayer(
-                                  polylines: [
-                                    Polyline(
-                                      points: waypoints,
-                                      strokeWidth: 2.0,
-                                      color: const Color.fromARGB(
-                                          255, 44, 15, 131),
-                                    ),
-                                  ],
-                                ),
-                                MarkerLayer(
-                                  markers: waypoints.map((point) {
-                                    return Marker(
-                                      point: point,
-                                      width: 10.0,
-                                      height: 10.0,
-                                      child: const Icon(
-                                        Icons.location_on,
-                                        color: Colors.red,
-                                        size: 10.0,
+                                if (waypoints.isNotEmpty)
+                                  PolylineLayer(
+                                    polylines: [
+                                      Polyline(
+                                        points: waypoints,
+                                        strokeWidth: 2.0,
+                                        color: Colors.blue,
                                       ),
-                                    );
-                                  }).toList(),
-                                ),
+                                    ],
+                                  ),
+                                if (waypoints.isNotEmpty)
+                                  MarkerLayer(
+                                    markers: waypoints.map((point) {
+                                      return Marker(
+                                        point: point,
+                                        width: 10.0,
+                                        height: 10.0,
+                                        child: const Icon(
+                                          Icons.location_on,
+                                          color: Colors.red,
+                                          size: 10.0,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                               ],
                             ),
                     ),
@@ -136,7 +133,6 @@ class RoutesPage extends StatelessWidget {
                       builder: (context) => RouteDetailsPage(
                         name: name,
                         waypoints: waypoints,
-                        tag: 'hero-route-$id',
                       ),
                     ),
                   );
@@ -150,24 +146,24 @@ class RoutesPage extends StatelessWidget {
   }
 
   /// Вычисление границ (bounds) для маршрута
-  LatLngBounds _calculateBounds(List<LatLng> points) {
-    if (points.isEmpty) {
-      return LatLngBounds(
-        const LatLng(55.0, 37.0),
-        const LatLng(55.0, 37.0),
-      );
-    }
+  // LatLngBounds _calculateBounds(List<LatLng> points) {
+  //   if (points.isEmpty) {
+  //     return LatLngBounds(
+  //       const LatLng(55.0, 37.0),
+  //       const LatLng(55.0, 37.0),
+  //     );
+  //   }
 
-    final sw = LatLng(
-      points.map((p) => p.latitude).reduce((a, b) => a < b ? a : b),
-      points.map((p) => p.longitude).reduce((a, b) => a < b ? a : b),
-    );
+  //   final sw = LatLng(
+  //     points.map((p) => p.latitude).reduce((a, b) => a < b ? a : b),
+  //     points.map((p) => p.longitude).reduce((a, b) => a < b ? a : b),
+  //   );
 
-    final ne = LatLng(
-      points.map((p) => p.latitude).reduce((a, b) => a > b ? a : b),
-      points.map((p) => p.longitude).reduce((a, b) => a > b ? a : b),
-    );
+  //   final ne = LatLng(
+  //     points.map((p) => p.latitude).reduce((a, b) => a > b ? a : b),
+  //     points.map((p) => p.longitude).reduce((a, b) => a > b ? a : b),
+  //   );
 
-    return LatLngBounds(sw, ne);
-  }
+  //   return LatLngBounds(sw, ne);
+  // }
 }

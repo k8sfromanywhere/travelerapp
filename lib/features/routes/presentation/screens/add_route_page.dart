@@ -258,6 +258,7 @@ class _AddRoutePageState extends State<AddRoutePage> {
                   child: Column(
                     children: [
                       FloatingActionButton(
+                        heroTag: UniqueKey().toString(),
                         onPressed: () {
                           setState(() {
                             _zoomLevel++;
@@ -269,6 +270,7 @@ class _AddRoutePageState extends State<AddRoutePage> {
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton(
+                        heroTag: UniqueKey().toString(),
                         onPressed: () {
                           setState(() {
                             _zoomLevel--;

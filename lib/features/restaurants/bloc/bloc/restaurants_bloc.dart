@@ -27,7 +27,7 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState> {
           .get();
 
       final restaurants = snapshot.docs.map((doc) {
-        return Restaurant.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+        return Restaurant.fromMap(doc.id, doc.data());
       }).toList();
 
       emit(RestaurantsLoaded(restaurants));

@@ -5,13 +5,11 @@ import 'package:latlong2/latlong.dart';
 class RouteDetailsPage extends StatefulWidget {
   final String name;
   final List<LatLng> waypoints;
-  final String tag;
 
   const RouteDetailsPage({
     super.key,
     required this.name,
     required this.waypoints,
-    required this.tag,
   });
 
   @override
@@ -26,23 +24,22 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateMap();
+      if (mounted) {
+        _updateMap();
+      }
     });
   }
 
   /// Обновление карты для показа маршрута
   void _updateMap() {
-    if (widget.waypoints.isNotEmpty) {
+    if (widget.waypoints.isNotEmpty && mounted) {
       final bounds = _calculateBounds(widget.waypoints);
-
       _mapController.fitCamera(
         CameraFit.bounds(
           bounds: bounds,
           padding: const EdgeInsets.all(16.0), // Добавляем отступы
         ),
       );
-    } else {
-      _mapController.move(LatLng(55.0, 37.0), _zoomLevel); // Центр по умолчанию
     }
   }
 
@@ -61,15 +58,15 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
     return LatLngBounds(sw, ne);
   }
 
-  /// Кнопки зума
+  /// Кнопки зума (без `heroTag`)
   FloatingActionButton _buildZoomButton({
+    //required tag,
     required IconData icon,
     required bool isZoomIn,
-    required String tag,
   }) {
     return FloatingActionButton(
-      heroTag: tag,
-      mini: true,
+      heroTag: UniqueKey().toString(),
+      mini: true, // Мини-версия FAB
       onPressed: () {
         setState(() {
           _zoomLevel += isZoomIn ? 1 : -1;
@@ -87,10 +84,7 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Hero(
-          tag: widget.tag,
-          child: Text(widget.name),
-        ),
+        title: Text(widget.name), // `Hero` больше не используется
       ),
       body: Stack(
         children: [
@@ -99,7 +93,7 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
             options: MapOptions(
               initialCenter: widget.waypoints.isNotEmpty
                   ? widget.waypoints.first
-                  : LatLng(55.0, 37.0), // Центр по умолчанию
+                  : const LatLng(55.0, 37.0), // Центр по умолчанию
               initialZoom: _zoomLevel,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all,
@@ -119,20 +113,21 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                     ),
                   ],
                 ),
-              MarkerLayer(
-                markers: widget.waypoints.map((point) {
-                  return Marker(
-                    point: point,
-                    width: 30.0,
-                    height: 30.0,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.red,
-                      size: 30.0,
-                    ),
-                  );
-                }).toList(),
-              ),
+              if (widget.waypoints.isNotEmpty)
+                MarkerLayer(
+                  markers: widget.waypoints.map((point) {
+                    return Marker(
+                      point: point,
+                      width: 30.0,
+                      height: 30.0,
+                      child: const Icon(
+                        Icons.location_on,
+                        color: Colors.red,
+                        size: 30.0,
+                      ),
+                    );
+                  }).toList(),
+                ),
             ],
           ),
           Positioned(
@@ -141,15 +136,15 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
             child: Column(
               children: [
                 _buildZoomButton(
+                  // tag: 'bt+',
                   icon: Icons.zoom_in,
                   isZoomIn: true,
-                  tag: 'zoom-in',
                 ),
                 const SizedBox(height: 8.0),
                 _buildZoomButton(
+                  // tag: 'bt-',
                   icon: Icons.zoom_out,
                   isZoomIn: false,
-                  tag: 'zoom-out',
                 ),
               ],
             ),
