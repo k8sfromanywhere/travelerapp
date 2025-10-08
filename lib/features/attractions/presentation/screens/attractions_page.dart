@@ -41,7 +41,7 @@ class _AttractionsViewState extends State<_AttractionsView> {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<AttractionsBloc>();
+    final favoritesBloc = context.read<AttractionsBloc>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Достопримечательности')),
@@ -59,8 +59,8 @@ class _AttractionsViewState extends State<_AttractionsView> {
             selectedFilter: _selectedFilter,
             onFilterChanged: (filter) {
               setState(() => _selectedFilter = filter);
-              final st = bloc.state;
-              bloc.add(
+              final st = favoritesBloc.state;
+              favoritesBloc.add(
                 LoadAttractions(lat: st.mapLat, lon: st.mapLon, filter: filter),
               );
             },

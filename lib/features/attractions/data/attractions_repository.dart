@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/attraction.dart';
@@ -18,7 +20,7 @@ class AttractionsRepository {
     final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?format=json&q=$cityName&type=city&addressdetails=1&limit=5');
 
-    print('Запрос координат для города: $url');
+    debugPrint('Запрос координат для города: $url');
 
     try {
       final response = await http.get(url);
@@ -36,17 +38,17 @@ class AttractionsRepository {
           final lat = double.parse(bestMatch['lat']);
           final lon = double.parse(bestMatch['lon']);
 
-          print(
+          debugPrint(
               'Центр города: ${bestMatch['display_name']} -> lat: $lat, lon: $lon');
 
           return Coordinates(latitude: lat, longitude: lon);
         }
       }
 
-      print('Город не найден: $cityName');
+      debugPrint('Город не найден: $cityName');
       return null;
     } catch (e) {
-      print('Ошибка при получении координат: $e');
+      debugPrint('Ошибка при получении координат: $e');
       return null;
     }
   }
@@ -57,7 +59,7 @@ class AttractionsRepository {
     final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?format=json&q=$query&addressdetails=1&limit=5');
 
-    print('Запрос к Nominatim API: $url');
+    debugPrint('Запрос к Nominatim API: $url');
 
     try {
       final response = await http.get(url);
@@ -65,7 +67,7 @@ class AttractionsRepository {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
 
-        print('Ответ от API: $data');
+        debugPrint('Ответ от API: $data');
 
         return data.where((item) => item['address'] != null).map((item) {
           final address = item['address'];
@@ -82,11 +84,11 @@ class AttractionsRepository {
           );
         }).toList();
       } else {
-        print('Ошибка API: ${response.statusCode}');
+        debugPrint('Ошибка API: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      print('Ошибка при запросе подсказок: $e');
+      debugPrint('Ошибка при запросе подсказок: $e');
       return [];
     }
   }
@@ -108,7 +110,7 @@ class AttractionsRepository {
 
     final url = Uri.parse('$baseUrl?data=${Uri.encodeComponent(query)}');
 
-    print('Запрос достопримечательностей: $url');
+    debugPrint('Запрос достопримечательностей: $url');
 
     try {
       final response = await http.get(url);
@@ -126,18 +128,46 @@ class AttractionsRepository {
                       .encode(item['tags']['description'] ?? 'Нет описания')),
                   lat: item['lat'],
                   lon: item['lon'],
+                  id: '',
                 ))
             .toList();
 
-        print('Найдено достопримечательностей: ${attractions.length}');
+        debugPrint('Найдено достопримечательностей: ${attractions.length}');
         return attractions;
       }
 
-      print('Ошибка загрузки достопримечательностей: ${response.statusCode}');
+      debugPrint(
+          'Ошибка загрузки достопримечательностей: ${response.statusCode}');
       return [];
     } catch (e) {
-      print('Ошибка: $e');
+      debugPrint('Ошибка: $e');
       return [];
     }
+  }
+
+  // Сохранить в избранное
+  Future<void> addToFavorites(Attraction attraction) async {
+    await FirebaseFirestore.instance.collection('favorites').add({
+      'name': attraction.name,
+      'description': attraction.description,
+      'lat': attraction.lat,
+      'lon': attraction.lon,
+    });
+  }
+
+  // Загрузить все избранные места
+  Future<List<Attraction>> loadFavorites() async {
+    final query =
+        await FirebaseFirestore.instance.collection('favorites').get();
+    return query.docs.map((doc) {
+      final data = doc.data();
+      return Attraction(
+        id: doc.id,
+        name: data['name'] ?? '',
+        description: data['description'] ?? '',
+        lat: data['lat'] ?? 0.0,
+        lon: data['lon'] ?? 0.0,
+      );
+    }).toList();
   }
 }

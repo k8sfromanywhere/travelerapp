@@ -21,8 +21,8 @@ class FavoritePlace {
       id: id,
       name: data['name'] ?? 'Без названия',
       type: data['type'] ?? 'Неизвестный тип',
-      lat: data['lat'] as double,
-      lon: data['lon'] as double,
+      lat: (data['lat'] as num).toDouble(),
+      lon: (data['lon'] as num).toDouble(),
       userId: data['userId'] as String,
     );
   }

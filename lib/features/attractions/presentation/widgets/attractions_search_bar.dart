@@ -11,11 +11,11 @@ class AttractionsSearchBar extends StatefulWidget {
   final Function(Timer?) onDebounceChanged;
 
   const AttractionsSearchBar({
-    Key? key,
+    super.key,
     required this.cityController,
     required this.debounceTimer,
     required this.onDebounceChanged,
-  }) : super(key: key);
+  });
 
   @override
   _AttractionsSearchBarState createState() => _AttractionsSearchBarState();

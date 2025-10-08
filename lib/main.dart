@@ -13,8 +13,8 @@ import 'package:travelerapp/features/attractions/presentation/screens/attraction
 import 'package:travelerapp/features/authentication/bloc/bloc/auth_bloc.dart';
 import 'package:travelerapp/features/authentication/presentation/screens/login_screen.dart';
 import 'package:travelerapp/features/authentication/presentation/screens/register_screen.dart';
-import 'package:travelerapp/features/favorities/bloc/bloc/favorities_bloc.dart';
-import 'package:travelerapp/features/favorities/presentation/screens/favorites_page.dart';
+import 'package:travelerapp/features/favorites/bloc/bloc/favorites_bloc.dart';
+import 'package:travelerapp/features/favorites/presentation/screens/favorites_page.dart';
 import 'package:travelerapp/features/home/presentation/screens/home_page.dart';
 import 'package:travelerapp/features/profile/presentation/screens/profile_screen.dart';
 import 'package:travelerapp/features/restaurants/screens/restaurant.dart';
@@ -34,7 +34,7 @@ void main() async {
   // Получаем текущего пользователя
   final user = FirebaseAuth.instance.currentUser;
   final userId = user?.uid ??
-      'guest'; // Если пользователь не аутентифицирован, используем 'guest'
+      'guest'; // Если пользователя не аутентифицирован, используем 'guest'
 
   runApp(
     ChangeNotifierProvider(
@@ -92,7 +92,7 @@ class TravelerApp extends StatelessWidget {
           create: (context) => FavoritesBloc(
             firestore: FirebaseFirestore.instance,
             userId: userId,
-          )..add(LoadFavoritesEvent(userId)),
+          )..add(LoadFavorites()),
         ),
         BlocProvider(
           create: (context) =>
@@ -124,7 +124,9 @@ class TravelerApp extends StatelessWidget {
                 return ProfileScreen(userId: userId);
               },
               '/settings': (context) => const SettingsPage(),
-              '/favorites': (context) => const FavoritesPage(),
+              '/favorites': (context) => const FavoritesPage(
+                    userId: '',
+                  ),
               '/routes': (context) => const RoutesPage(),
               '/hotels': (context) => TravelServicesPage(),
               '/restaurants': (context) => const RestaurantsMapPage(),

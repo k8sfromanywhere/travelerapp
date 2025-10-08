@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:travelerapp/features/favorites/bloc/bloc/favorites_bloc.dart';
 import '../../models/attraction.dart';
 
 class AttractionsMap extends StatefulWidget {
@@ -31,7 +33,7 @@ class _AttractionsMapState extends State<AttractionsMap> {
   late MapController _mapController;
   late LatLng _currentCenter;
   late double _currentZoom;
-  bool _isDisposed = false;
+  bool isDisposed = false;
 
   @override
   void initState() {
@@ -120,7 +122,7 @@ class _AttractionsMapState extends State<AttractionsMap> {
                 heroTag: "zoom_in",
                 mini: true,
                 onPressed: () {
-                  if (!_isDisposed) {
+                  if (!isDisposed) {
                     setState(() {
                       _currentZoom += 1;
                       _mapController.move(_currentCenter, _currentZoom);
@@ -134,7 +136,7 @@ class _AttractionsMapState extends State<AttractionsMap> {
                 heroTag: "zoom_out",
                 mini: true,
                 onPressed: () {
-                  if (!_isDisposed) {
+                  if (!isDisposed) {
                     setState(() {
                       _currentZoom -= 1;
                       _mapController.move(_currentCenter, _currentZoom);
@@ -151,14 +153,25 @@ class _AttractionsMapState extends State<AttractionsMap> {
   }
 
   void _showAttractionDialog(BuildContext context, Attraction attr) {
-    if (_isDisposed) return;
-
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(attr.name),
         content: Text(attr.description),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border, color: Colors.red),
+            onPressed: () {
+              // Отправляем событие в BLoC
+              final bloc = context.read<FavoritesBloc>();
+              bloc.add(AddToFavorites(attraction: attr));
+
+              Navigator.of(context).pop(); // Закрыть диалог
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Добавлено в избранное!')),
+              );
+            },
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Закрыть'),
